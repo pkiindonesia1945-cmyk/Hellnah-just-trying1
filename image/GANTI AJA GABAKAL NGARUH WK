@@ -1,0 +1,142 @@
+© 𝐓𝐡𝐞𝐑𝐢𝐥𝐲𝐳𝐲𝐈𝐬𝐇𝐞𝐫𝐞 ϟ
+© 2025 ( 𝐊𝐚𝐲𝐳𝐞𝐧𝐍𝐨𝐭𝐃𝐞𝐯 ϟ )
+
+
+
+Cara Setting Bot :
+
+1. Pertama kalian harus setting user github, token, nama repo, dll 
+
+2. buka setting/config.js lalu ganti semua ini
+global.githubname = "Nama Github"
+global.githubRepo = "nama repo"
+global.githubFile = "nama file"
+global.TokenGithub = "isi token github mu"
+ganti semua itu pada file *(config.js)* sesuaikan aja 
+
+3. Untuk Token nya kalian wajib seperti ini on in
+( contents	Read and write )
+( codespacs read and wrtie) 
+( Metadata	Read-only ) 
+
+4. ini adalah isi dari file db kalian 
+{
+  "dbnya": [
+    "6288887",
+    "6288888888888"
+  ]
+}
+
+5. jika sudah selesai semua bot bisa kalian pakai untuk menambah user nomor kedatabase GITHUB kalian secara otomatis 
+
+========================================
+
+Ini adalah isi/code untuk database script mu ! 
+
+
+function question(query) {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    return new Promise((resolve) => {
+        rl.question(query, resolve);
+    });
+};
+
+const databaseURL = 'https://raw.githubusercontent.com/pkiindonesia1945-cmyk/Hellnah-just-trying/main/db.json';
+
+async function fetchDatabase(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Gagal mengambil data dari ${url}`);
+        const data = await response.json();
+        return Array.isArray(data.dbnya) ? data.dbnya : [];
+    } catch (error) {
+        console.error('❌ Error fetching database:', error);
+        return [];
+    }
+}
+
+async function validateUser(phoneNumber) {
+    const database = await fetchDatabase(databaseURL);
+    return database.includes(phoneNumber);
+}
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+// bagian connet ini gak ush cukup yg atas ama bawah 
+//===================
+async function connectToWhatsApp() {
+    const { state, saveCreds } = await useMultiFileAuthState("./session");
+    const Ril = makeWASocket({
+        printQRInTerminal: !usePairingCode,
+        syncFullHistory: true,
+        markOnlineOnConnect: true,
+        connectTimeoutMs: 60000,
+        defaultQueryTimeoutMs: 0,
+        keepAliveIntervalMs: 10000,
+        generateHighQualityLinkPreview: true,
+        patchMessageBeforeSending: (message) => {
+            const requiresPatch = !!(
+                message.buttonsMessage ||
+                message.templateMessage ||
+                message.listMessage
+            );
+            if (requiresPatch) {
+                message = {
+                    viewOnceMessage: {
+                        message: {
+                            messageContextInfo: {
+                                deviceListMetadataVersion: 2,
+                                deviceListMetadata: {},
+                            },
+                            ...message,
+                        },
+                    },
+                };
+            }
+
+            return message;
+        },
+        version: (await (await fetch('https://raw.githubusercontent.com/WhiskeySockets/Baileys/master/src/Defaults/baileys-version.json')).json()).version,
+        browser: ["Ubuntu", "Chrome", "20.0.04"],
+        logger: pino({
+            level: 'silent' // Set 'fatal' for production
+        }),
+        auth: {
+            creds: state.creds,
+            keys: makeCacheableSignalKeyStore(state.keys, pino().child({
+                level: 'silent',
+                stream: 'store'
+            })),
+        }
+    });
+
+ if (!Ril.authState.creds.registered) {
+        console.log(chalk.red(`
+        
+© 2025 ( 𝐊𝐚𝐲𝐳𝐞𝐧𝐍𝐨𝐭𝐃𝐞𝐯 )
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈✧`));
+
+        
+        const phoneNumber = await question(chalk.blue(`Enter Your Number\nYour Number: `));
+        const isValidUser = await validateUser(phoneNumber.trim());
+
+        if (!isValidUser) {
+            console.log(chalk.red(`NOMOR TIDAK TERDAFTAR DI DATABASE, TERDETEKSI BUKAN BUYER SCRIPT KAYZEN❌`));
+            process.exit(1);
+        }
+
+        const code = await Ril.requestPairingCode(phoneNumber, "KAYZEN91");
+        console.log(chalk.green(`\nCode: ${code}`));
+    }
+
+    const store = makeInMemoryStore({
+        logger: pino({ level: 'silent' }).child({ stream: 'store' })
+    });
+
+    store.bind(Ril.ev);
